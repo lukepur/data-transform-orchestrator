@@ -4,7 +4,10 @@
   "description": "Orchestrate multiple data transforms into a system",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --recursive",
+    "test:watch": "mocha --recursive --watch",
+    "build": "./node_modules/.bin/babel src --presets babel-preset-es2015 --out-dir dist",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "data",
@@ -17,5 +20,11 @@
     "data-transform-descriptor": "0.0.4",
     "lodash": "^4.17.4",
     "toposort": "^1.0.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-es2015": "^6.24.1",
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
   }
 }
