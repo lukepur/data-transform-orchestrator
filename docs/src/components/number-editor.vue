@@ -1,7 +1,7 @@
 <template>
   <div class="control-group">
     <label>{{ label }}</label>
-    <input type="number" :value="value" @change="e=>update(e.target.value)" />
+    <input type="number" :value="value" @change="e=>update(+e.target.value)" class="form-control" />
   </div>
 </template>
 
@@ -10,7 +10,7 @@ export default {
   name: 'number-editor',
   props: {
     label: String,
-    value: String,
+    value: [String, Number],
     update: Function
   }
 }

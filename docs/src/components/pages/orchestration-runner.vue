@@ -18,18 +18,23 @@
         <h4>Inputs</h4>
       </div>
       <div class="col-12">
-        <ul>
-          <li v-for="(link, index) in userInputs">
-          <Component
+        <div>
+          <Component v-for="(link, index) in userInputs" :key="index"
             :is="componentEditorForType(userInputConstraints[index].type)"
             :value="get(inputData, link.target.path)"
             :label="link.source.path"
             :update="e=>update(link.source.path, e)"/>
-          </li>
-        </ul>
+        </div>
       </div>
+    </div>
+    <div class="row">
       <div class="col-12">
         INPUT: {{ inputData }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        OUTPUT: {{ output }}
       </div>
     </div>
   </div>
@@ -71,6 +76,14 @@ export default {
           find(nodes, { id: nodeId }).meta().inputConstraints
         );
       });
+    },
+    output () {
+      if (!this.selectedOrchestration) return null;
+      try {
+        return this.selectedOrchestration.run(this.inputData);
+      } catch (err) {
+        return null;
+      }
     }
   },
   methods: {

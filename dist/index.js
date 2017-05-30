@@ -30,7 +30,7 @@ function Orchestrator(config) {
 
     if (unenteredInputs.length > 0) {
       throw Error('Enentered inputs: ' + unenteredInputs.map(function (link) {
-        return link.path;
+        return link.source.path;
       }).join(','));
     }
 

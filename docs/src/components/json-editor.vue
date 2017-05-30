@@ -1,7 +1,7 @@
 <template>
   <div class="control-group">
     <label>{{ label }}</label>
-    <textarea :value="stringifyValue" @change="updateJson"></textarea>
+    <textarea :value="stringifyValue" @change="updateJson" class="form-control"></textarea>
   </div>
 </template>
 

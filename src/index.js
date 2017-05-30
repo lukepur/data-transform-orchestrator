@@ -16,7 +16,7 @@ function Orchestrator (config) {
     const unenteredInputs = userInputLinks.filter(link => userInput[link.source.path] === undefined);
 
     if (unenteredInputs.length > 0) {
-      throw Error('Enentered inputs: ' + unenteredInputs.map(link => link.path).join(','));
+      throw Error('Enentered inputs: ' + unenteredInputs.map(link => link.source.path).join(','));
     }
 
     // put userInputs into target inputs
