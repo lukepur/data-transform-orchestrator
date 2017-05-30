@@ -13,21 +13,21 @@ module.exports = new Orchestrator({
     {
       source: {
         nodeId: 'userInput',
-        path: 'priceField'
-      },
-      target: {
-        nodeId: 'pickField',
-        path: 'prop'
-      }
-    },
-    {
-      source: {
-        nodeId: 'userInput',
         path: 'priceArray'
       },
       target: {
         nodeId: 'pickField',
         path: 'haystack'
+      }
+    },
+    {
+      source: {
+        nodeId: 'userInput',
+        path: 'priceField'
+      },
+      target: {
+        nodeId: 'pickField',
+        path: 'prop'
       }
     },
     {
