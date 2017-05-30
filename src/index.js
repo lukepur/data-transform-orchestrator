@@ -2,7 +2,7 @@ const toposort = require('toposort');
 const { find, assign, set } = require('lodash');
 
 function Orchestrator (config) {
-  const { nodes, links } = config;
+  const { nodes, links, meta } = config;
 
   this.run = function (userInput) {
     const graph = buildDependencyGraph(links);
@@ -54,10 +54,10 @@ function Orchestrator (config) {
   };
 
   this.meta = function () {
-    return {
+    return assign({}, meta, {
       nodes,
       links
-    };
+    });
   };
 };
 
@@ -74,13 +74,13 @@ function buildDependencyGraph(links) {
 }
 
 // test:
-const testConfig = require('../test/test-config');
-const orchestrator = new Orchestrator(testConfig);
-console.log('orchestrator meta:', orchestrator.meta());
-console.log('output:');
-const result = orchestrator.run({
-  priceArray: [{c: 1}, {c: 2}, {c: 3}, {c: 4}, {c: 4}, {c: 4}, {c: 4}, {c: 6}, {c: 3}, {c: 9},{c: 20}],
-  priceField: 'c',
-  periods: 1.5
-});
-console.log(result);
+// const testConfig = require('../test/test-config');
+// const orchestrator = new Orchestrator(testConfig);
+// console.log('orchestrator meta:', orchestrator.meta());
+// console.log('output:');
+// const result = orchestrator.run({
+//   priceArray: [{c: 1}, {c: 2}, {c: 3}, {c: 4}, {c: 4}, {c: 4}, {c: 4}, {c: 6}, {c: 3}, {c: 9},{c: 20}],
+//   priceField: 'c',
+//   periods: 1.5
+// });
+// console.log(result);
