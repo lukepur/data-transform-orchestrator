@@ -25,10 +25,12 @@ function Orchestrator (config) {
     });
 
     // good to run...
-    graph.forEach(nodeId => {
+    for (let i = 0; i < graph.length; i++) {
+    // graph.forEach(nodeId => {
+      let nodeId = graph[i];
       const node = find(nodes, {id: nodeId});
 
-      if (!node) return; // user node
+      if (!node) continue; // user node
       
       // collect inputs to run node
       const sourceLinks = links.filter(link => link.target.nodeId === nodeId);
@@ -42,13 +44,24 @@ function Orchestrator (config) {
         // TODO
       }
 
+      // Check if this node has input errors
+      if (nodeResult.inputErrors) {
+        resultCache.userOutput = {
+          inputErrors: {
+            nodeId,
+            errors: nodeResult.inputErrors
+          }
+        }
+        return; // don't process any more nodes
+      }
+
       // add result to result cache for next iteration
       links
         .filter(link => link.source.nodeId === nodeId)
         .forEach(link => {
           set(resultCache, [link.target.nodeId, link.target.path], nodeResult);
         });
-    });
+    };
 
     return resultCache.userOutput;
   };
