@@ -1,5 +1,7 @@
 'use strict';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var toposort = require('toposort');
 
 var _require = require('lodash'),
@@ -40,10 +42,13 @@ function Orchestrator(config) {
     });
 
     // good to run...
-    graph.forEach(function (nodeId) {
+
+    var _loop = function _loop(i) {
+      // graph.forEach(nodeId => {
+      var nodeId = graph[i];
       var node = find(nodes, { id: nodeId });
 
-      if (!node) return; // user node
+      if (!node) return 'continue'; // user node
 
       // collect inputs to run node
       var sourceLinks = links.filter(function (link) {
@@ -59,15 +64,40 @@ function Orchestrator(config) {
       // TODO
 
 
+      // Check if this node has input errors
+      if (nodeResult.inputErrors) {
+        resultCache.userOutput = {
+          inputErrors: {
+            nodeId: nodeId,
+            errors: nodeResult.inputErrors
+          }
+        };
+        return {
+          v: resultCache
+        }; // don't process any more nodes
+      }
+
       // add result to result cache for next iteration
       links.filter(function (link) {
         return link.source.nodeId === nodeId;
       }).forEach(function (link) {
         set(resultCache, [link.target.nodeId, link.target.path], nodeResult);
       });
-    });
+    };
 
-    return resultCache.userOutput;
+    for (var i = 0; i < graph.length; i++) {
+      var _ret = _loop(i);
+
+      switch (_ret) {
+        case 'continue':
+          continue;
+
+        default:
+          if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+      }
+    };
+
+    return resultCache;
   };
 
   this.meta = function () {

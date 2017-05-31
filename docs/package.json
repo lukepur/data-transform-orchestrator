@@ -13,7 +13,7 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs"
   },
   "dependencies": {
-    "data-transform-orchestrator": "0.0.4",
+    "data-transform-orchestrator": "0.0.7",
     "vue": "^2.3.3",
     "vue-router": "^2.3.1"
   },

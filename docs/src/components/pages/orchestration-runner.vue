@@ -80,7 +80,7 @@ export default {
     output () {
       if (!this.selectedOrchestration) return null;
       try {
-        return this.selectedOrchestration.run(this.inputData);
+        return this.selectedOrchestration.run(this.inputData).userOutput;
       } catch (err) {
         return null;
       }

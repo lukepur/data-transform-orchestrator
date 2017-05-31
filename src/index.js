@@ -52,7 +52,7 @@ function Orchestrator (config) {
             errors: nodeResult.inputErrors
           }
         }
-        return resultCache.userOutput; // don't process any more nodes
+        return resultCache; // don't process any more nodes
       }
 
       // add result to result cache for next iteration
@@ -63,7 +63,7 @@ function Orchestrator (config) {
         });
     };
 
-    return resultCache.userOutput;
+    return resultCache;
   };
 
   this.meta = function () {
