@@ -52,7 +52,7 @@ function Orchestrator (config) {
             errors: nodeResult.inputErrors
           }
         }
-        return; // don't process any more nodes
+        return resultCache.userOutput; // don't process any more nodes
       }
 
       // add result to result cache for next iteration
