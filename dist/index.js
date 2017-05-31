@@ -17,9 +17,8 @@ function Orchestrator(config) {
 
   this.run = function (userInput) {
     var graph = buildDependencyGraph(links);
-    var resultCache = {
-      userInput: userInput
-    };
+    var inputCache = {};
+    var resultCache = {};
 
     // ensure all userInputs are available
     var userInputLinks = links.filter(function (link) {
@@ -38,7 +37,7 @@ function Orchestrator(config) {
 
     // put userInputs into target inputs
     userInputLinks.forEach(function (link) {
-      set(resultCache, [link.target.nodeId, link.target.path], userInput[link.source.path]);
+      set(inputCache, [link.target.nodeId, link.target.path], userInput[link.source.path]);
     });
 
     // good to run...
@@ -54,7 +53,7 @@ function Orchestrator(config) {
       var sourceLinks = links.filter(function (link) {
         return link.target.nodeId === nodeId;
       });
-      var nodeInput = resultCache[nodeId];
+      var nodeInput = inputCache[nodeId];
 
       // calculate result
       var nodeResult = void 0;
@@ -66,23 +65,26 @@ function Orchestrator(config) {
 
       // Check if this node has input errors
       if (nodeResult.inputErrors) {
-        resultCache.userOutput = {
-          inputErrors: {
-            nodeId: nodeId,
-            errors: nodeResult.inputErrors
-          }
+        resultCache.inputErrors = {
+          nodeId: nodeId,
+          errors: nodeResult.inputErrors
         };
         return {
           v: resultCache
         }; // don't process any more nodes
       }
 
-      // add result to result cache for next iteration
+      // add result to input cache for next iteration
       links.filter(function (link) {
         return link.source.nodeId === nodeId;
       }).forEach(function (link) {
-        set(resultCache, [link.target.nodeId, link.target.path], nodeResult);
+        set(inputCache, [link.target.nodeId, link.target.path], nodeResult);
       });
+
+      // add result to result cache
+      resultCache[nodeId] = {
+        output: nodeResult
+      };
     };
 
     for (var i = 0; i < graph.length; i++) {

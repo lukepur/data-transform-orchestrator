@@ -6,9 +6,8 @@ function Orchestrator (config) {
 
   this.run = function (userInput) {
     const graph = buildDependencyGraph(links);
-    const resultCache = {
-      userInput
-    };
+    const inputCache = {};
+    const resultCache = {};
 
     // ensure all userInputs are available
     const userInputLinks = links.filter(link => link.source.nodeId === 'userInput');
@@ -21,7 +20,7 @@ function Orchestrator (config) {
 
     // put userInputs into target inputs
     userInputLinks.forEach(link => {
-      set(resultCache, [link.target.nodeId, link.target.path], userInput[link.source.path]);
+      set(inputCache, [link.target.nodeId, link.target.path], userInput[link.source.path]);
     });
 
     // good to run...
@@ -34,7 +33,7 @@ function Orchestrator (config) {
       
       // collect inputs to run node
       const sourceLinks = links.filter(link => link.target.nodeId === nodeId);
-      const nodeInput = resultCache[nodeId];
+      const nodeInput = inputCache[nodeId];
 
       // calculate result
       let nodeResult;
@@ -46,21 +45,24 @@ function Orchestrator (config) {
 
       // Check if this node has input errors
       if (nodeResult.inputErrors) {
-        resultCache.userOutput = {
-          inputErrors: {
-            nodeId,
-            errors: nodeResult.inputErrors
-          }
-        }
+        resultCache.inputErrors = {
+          nodeId,
+          errors: nodeResult.inputErrors
+        };
         return resultCache; // don't process any more nodes
       }
 
-      // add result to result cache for next iteration
+      // add result to input cache for next iteration
       links
         .filter(link => link.source.nodeId === nodeId)
         .forEach(link => {
-          set(resultCache, [link.target.nodeId, link.target.path], nodeResult);
+          set(inputCache, [link.target.nodeId, link.target.path], nodeResult);
         });
+
+      // add result to result cache
+      resultCache[nodeId] = {
+        output: nodeResult
+      };
     };
 
     return resultCache;

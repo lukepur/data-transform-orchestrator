@@ -1,6 +1,6 @@
 {
   "name": "data-transform-orchestrator",
-  "version": "0.0.7",
+  "version": "0.0.10",
   "description": "Orchestrate multiple data transforms into a system",
   "main": "dist/index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "author": "Luke Purton",
   "license": "ISC",
   "dependencies": {
-    "data-transform-descriptor": "0.0.4",
+    "data-transform-descriptor": "0.0.6",
     "lodash": "^4.17.4",
     "toposort": "^1.0.3"
   },

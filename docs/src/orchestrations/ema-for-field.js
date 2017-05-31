@@ -3,11 +3,13 @@ const { assign } = require('lodash');
 
 const arrayPick = require('./transforms/transform-array-pick');
 const ema = require('./transforms/transform-ema');
+const echo = require('./transforms/transform-echo');
 
 module.exports = new Orchestrator({
   nodes: [
     assign({}, arrayPick, { id: 'pickField' }),
-    assign({}, ema, { id: 'ema' })
+    assign({}, ema, { id: 'ema' }),
+    assign({}, echo, { id: 'finalOutput' })
   ],
   links: [
     {
@@ -56,8 +58,8 @@ module.exports = new Orchestrator({
         path: 'output'
       },
       target: {
-        nodeId: 'userOutput',
-        path: 'output'
+        nodeId: 'finalOutput',
+        path: 'source'
       }
     }
   ],
