@@ -34,7 +34,8 @@
     </div>
     <div class="row">
       <div class="col-12">
-        OUTPUT: {{ output }}
+        <h5>Node outputs</h5>
+        <TreeView :data="output" />
       </div>
     </div>
   </div>
@@ -42,6 +43,7 @@
 
 <script>
 import { find, set, get } from 'lodash';
+import TreeView from 'vue-json-tree-view/src/TreeView.vue';
 
 import orchestrations from '../../orchestrations/orchestrations';
 import JsonEditor from '../json-editor.vue';
@@ -80,7 +82,7 @@ export default {
     output () {
       if (!this.selectedOrchestration) return null;
       try {
-        return this.selectedOrchestration.run(this.inputData).userOutput;
+        return this.selectedOrchestration.run(this.inputData);
       } catch (err) {
         return null;
       }
@@ -105,12 +107,12 @@ export default {
   components: {
     JsonEditor,
     NumberEditor,
-    StringEditor
+    StringEditor,
+    TreeView
   }
 }
 
 function getConstraintByPath (path, meta) {
-  console.log(path, meta);
   const pathArr = path.split('.');
   let m = meta;
   pathArr.forEach(p => {

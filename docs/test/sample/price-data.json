@@ -1,0 +1,8 @@
+[
+  { "open": 10, "high": 11, "low": 9, "close": 10.5 },
+  { "open": 11, "high": 12, "low": 10, "close": 10.5 },
+  { "open": 12, "high": 13, "low": 11, "close": 10.5 },
+  { "open": 13, "high": 14, "low": 12, "close": 10.5 },
+  { "open": 14, "high": 15, "low": 13, "close": 10.5 },
+  { "open": 15, "high": 16, "low": 14, "close": 10.5 }
+]
