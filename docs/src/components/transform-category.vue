@@ -8,15 +8,15 @@
     <div class="transforms-container row" :class="expandedClass">
       <div class="transform-container col-6"
           v-for="transform in transforms">
-        <div class="transform d-flex align-items-center justify-content-center">
-          <span>{{ transform.meta().name }}</span>
-        </div>
+        <Transform :transform="transform" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import Transform from './transform.vue'
+
 export default {
   name: 'transform-category',
   props: {
@@ -32,6 +32,9 @@ export default {
     toggleExpanded () {
       this.expandedClass = (this.expandedClass === '' ? 'collapsed' : '');
     }
+  },
+  components: {
+    Transform
   }
 };
 </script>
@@ -39,12 +42,6 @@ export default {
 <style scoped>
 .transforms-container {
   margin-bottom: 0.25em;
-}
-
-.transform {
-  border: 1px solid #d3d3d3;
-  border-radius: 3px;
-  height: 3em;
 }
 
 .collapsed {

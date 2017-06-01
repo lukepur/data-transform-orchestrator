@@ -14,6 +14,7 @@
       </div>
       <div class="col-9">
         <h5>Workspace</h5>
+        <OrchestrationWorkspace />
       </div>
     </div>
   </div>
@@ -22,6 +23,7 @@
 <script>
 import transforms from '../../orchestrations/transforms';
 import TransformCategory from '../transform-category.vue';
+import OrchestrationWorkspace from '../orchestration-workspace.vue';
 
 export default {
   name: 'orchestration-builder',
@@ -43,7 +45,8 @@ export default {
     }
   },
   components: {
-    TransformCategory
+    TransformCategory,
+    OrchestrationWorkspace
   }
 }
 </script>
