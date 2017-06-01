@@ -21,7 +21,8 @@ const fn = input => {
 };
 
 const meta = {
-  name: 'Echo'
+  name: 'Echo',
+  categories: ['map']
 };
 
 module.exports = createTransformer(inputConstraints, outputConstraints, fn, meta);

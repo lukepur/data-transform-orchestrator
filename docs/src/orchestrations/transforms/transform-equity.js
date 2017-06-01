@@ -56,7 +56,8 @@ const fn = input => {
 };
 
 const meta = {
-  name: 'Equity'
+  name: 'Equity',
+  categories: ['finance']
 };
 
 module.exports = createTransformer(inputConstraints, outputConstraints, fn, meta);

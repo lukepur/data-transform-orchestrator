@@ -48,7 +48,8 @@ const fn = input => {
 }
 
 const meta = {
-  name: 'EMA'
+  name: 'EMA',
+  categories: ['finance', 'statistical']
 };
 
 module.exports = new Transformer(inputConstraints, outputConstraints, fn, meta);

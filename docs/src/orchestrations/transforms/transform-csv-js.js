@@ -33,7 +33,8 @@ const fn = input => {
 };
 
 const meta = {
-  name: 'CSV to JS'
+  name: 'CSV to JS',
+  categories: ['converter']
 };
 
 module.exports = createTransformer(inputConstraints, outputConstraints, fn, meta);

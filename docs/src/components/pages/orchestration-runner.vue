@@ -46,10 +46,10 @@ import { find, set, get } from 'lodash';
 import TreeView from 'vue-json-tree-view/src/TreeView.vue';
 
 import orchestrations from '../../orchestrations/orchestrations';
-import JsonEditor from '../json-editor.vue';
-import NumberEditor from '../number-editor.vue';
-import StringEditor from '../string-editor.vue';
-import MultilineEditor from '../multiline-editor.vue';
+import JsonEditor from '../editor-json.vue';
+import NumberEditor from '../editor-number.vue';
+import StringEditor from '../editor-string.vue';
+import MultilineEditor from '../editor-multiline.vue';
 
 export default {
   name: 'orchestration-runner',

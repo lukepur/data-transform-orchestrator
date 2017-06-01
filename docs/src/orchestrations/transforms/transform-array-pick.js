@@ -29,7 +29,8 @@ const fn = input => {
 };
 
 const meta = {
-  name: 'Array Pick'
+  name: 'Array Pick',
+  categories: ['array']
 };
 
 module.exports = createTransformer(inputConstraints, outputConstraints, fn, meta);
