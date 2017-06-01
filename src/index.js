@@ -11,11 +11,10 @@ function Orchestrator (config) {
 
     // ensure all userInputs are available
     const userInputLinks = links.filter(link => link.source.nodeId === 'userInput');
-
     const unenteredInputs = userInputLinks.filter(link => userInput[link.source.path] === undefined);
 
     if (unenteredInputs.length > 0) {
-      throw Error('Enentered inputs: ' + unenteredInputs.map(link => link.source.path).join(','));
+      throw Error('Unentered inputs: ' + unenteredInputs.map(link => link.source.path).join(','));
     }
 
     // put userInputs into target inputs
@@ -44,7 +43,7 @@ function Orchestrator (config) {
       }
 
       // Check if this node has input errors
-      if (nodeResult.inputErrors) {
+      if (nodeResult && nodeResult.inputErrors) {
         resultCache.inputErrors = {
           nodeId,
           errors: nodeResult.inputErrors
@@ -52,6 +51,14 @@ function Orchestrator (config) {
         return resultCache; // don't process any more nodes
       }
 
+      // Check if this node has output errors
+      if (nodeResult && nodeResult.outputErrors) {
+        resultCache.outputErrors = {
+          nodeId,
+          errors: nodeResult.outputErrors
+        };
+        return resultCache; // don't process any more nodes
+      }
       // add result to input cache for next iteration
       links
         .filter(link => link.source.nodeId === nodeId)

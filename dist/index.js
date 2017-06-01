@@ -24,13 +24,12 @@ function Orchestrator(config) {
     var userInputLinks = links.filter(function (link) {
       return link.source.nodeId === 'userInput';
     });
-
     var unenteredInputs = userInputLinks.filter(function (link) {
       return userInput[link.source.path] === undefined;
     });
 
     if (unenteredInputs.length > 0) {
-      throw Error('Enentered inputs: ' + unenteredInputs.map(function (link) {
+      throw Error('Unentered inputs: ' + unenteredInputs.map(function (link) {
         return link.source.path;
       }).join(','));
     }
@@ -64,7 +63,7 @@ function Orchestrator(config) {
 
 
       // Check if this node has input errors
-      if (nodeResult.inputErrors) {
+      if (nodeResult && nodeResult.inputErrors) {
         resultCache.inputErrors = {
           nodeId: nodeId,
           errors: nodeResult.inputErrors
@@ -74,6 +73,16 @@ function Orchestrator(config) {
         }; // don't process any more nodes
       }
 
+      // Check if this node has output errors
+      if (nodeResult && nodeResult.outputErrors) {
+        resultCache.outputErrors = {
+          nodeId: nodeId,
+          errors: nodeResult.outputErrors
+        };
+        return {
+          v: resultCache
+        }; // don't process any more nodes
+      }
       // add result to input cache for next iteration
       links.filter(function (link) {
         return link.source.nodeId === nodeId;

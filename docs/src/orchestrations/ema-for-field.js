@@ -1,12 +1,14 @@
 const Orchestrator = require('data-transform-orchestrator');
 const { assign } = require('lodash');
 
+const csvToJS = require('./transforms/transform-csv-js');
 const arrayPick = require('./transforms/transform-array-pick');
 const ema = require('./transforms/transform-ema');
 const echo = require('./transforms/transform-echo');
 
 module.exports = new Orchestrator({
   nodes: [
+    assign({}, csvToJS, { id: 'csvtojs' }),
     assign({}, arrayPick, { id: 'pickField' }),
     assign({}, ema, { id: 'ema' }),
     assign({}, echo, { id: 'finalOutput' })
@@ -15,7 +17,17 @@ module.exports = new Orchestrator({
     {
       source: {
         nodeId: 'userInput',
-        path: 'priceArray'
+        path: 'csv'
+      },
+      target: {
+        nodeId: 'csvtojs',
+        path: 'source'
+      }
+    },
+    {
+      source: {
+        nodeId: 'csvtojs',
+        path: 'output'
       },
       target: {
         nodeId: 'pickField',

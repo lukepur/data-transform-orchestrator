@@ -20,7 +20,7 @@
       <div class="col-12">
         <div>
           <Component v-for="(link, index) in userInputs" :key="index"
-            :is="componentEditorForType(userInputConstraints[index].type)"
+            :is="componentEditorForConstraint(userInputConstraints[index])"
             :value="get(inputData, link.target.path)"
             :label="link.source.path"
             :update="e=>update(link.source.path, e)"/>
@@ -49,6 +49,7 @@ import orchestrations from '../../orchestrations/orchestrations';
 import JsonEditor from '../json-editor.vue';
 import NumberEditor from '../number-editor.vue';
 import StringEditor from '../string-editor.vue';
+import MultilineEditor from '../multiline-editor.vue';
 
 export default {
   name: 'orchestration-runner',
@@ -94,8 +95,12 @@ export default {
       set(this.inputData, path, value);
       this.inputData = { ...this.inputData };
     },
-    componentEditorForType (type) {
+    componentEditorForConstraint (constraint) {
+      const { type } = constraint;
       if (type === 'string') {
+        if (constraint.opts && constraint.opts.multiline) {
+          return 'MultilineEditor';
+        }
         return 'StringEditor';
       }
       if (type === 'number') {
@@ -108,6 +113,7 @@ export default {
     JsonEditor,
     NumberEditor,
     StringEditor,
+    MultilineEditor,
     TreeView
   }
 }

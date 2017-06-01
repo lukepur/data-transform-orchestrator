@@ -1,13 +1,13 @@
 <template>
   <div class="control-group">
     <label>{{ label }}</label>
-    <input type="text" :value="value" @change="e=>update(e.target.value)" class="form-control"/>
+    <textarea :value="value" @change="e=>update(e.target.value)" class="form-control"></textarea>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'string-editor',
+  name: 'multiline-editor',
   props: {
     label: String,
     value: String,
@@ -15,3 +15,4 @@ export default {
   }
 }
 </script>
+
