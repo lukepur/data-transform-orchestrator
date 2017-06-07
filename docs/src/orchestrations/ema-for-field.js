@@ -6,7 +6,7 @@ const arrayPick = require('./transforms/transform-array-pick');
 const ema = require('./transforms/transform-ema');
 const echo = require('./transforms/transform-echo');
 
-module.exports = new Orchestrator({
+const config = {
   nodes: [
     assign({}, csvToJS, { id: 'csvtojs' }),
     assign({}, arrayPick, { id: 'pickField' }),
@@ -78,5 +78,8 @@ module.exports = new Orchestrator({
   meta: {
     name: 'EMA for field'
   }
-});
+};
+
+module.exports = new Orchestrator(config);
+module.exports.config = config;
 

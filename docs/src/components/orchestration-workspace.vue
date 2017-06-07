@@ -3,23 +3,21 @@
     @drop="onDrop"
     @dragenter="cancel"
     @dragover="cancel">
-    <pre>{{ JSON.stringify(orchestration, null, 2) }}</pre>
+    <pre>{{ JSON.stringify(orchestration.meta(), null, 2) }}</pre>
   </div>
 </template>
 
 <script>
 import { find } from 'lodash';
 import transforms from '../orchestrations/transforms';
+import Orchestrator from 'data-transform-orchestrator';
+import { config } from '../orchestrations/ema-for-field';
 
 export default {
   name: 'orchestration-workspace',
   data () {
     return {
-      orchestration: {
-        nodes: [],
-        links: [],
-        meta: {}
-      }
+      orchestrationConfig: config
     };
   },
   methods: {
@@ -27,11 +25,16 @@ export default {
       const name = e.dataTransfer.getData('name');
       const transform = find(transforms, t => t.meta().name === name);
       if (transform) {
-        this.orchestration.nodes.push({ ...transform, id: name });
+        this.orchestrationConfig.nodes.push({ ...transform, id: name });
       }
     },
     cancel (e) {
       e.preventDefault();
+    }
+  },
+  computed: {
+    orchestration () {
+      return new Orchestrator(this.orchestrationConfig);
     }
   }
 }
