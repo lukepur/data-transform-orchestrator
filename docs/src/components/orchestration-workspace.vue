@@ -3,20 +3,41 @@
     @drop="onDrop"
     @dragenter="cancel"
     @dragover="cancel">
-    <svg :width="svg.width" :height="svg.height" :id="svg.workspaceId"></svg>
+    <svg :width="graphDimensions.width" :height="graphDimensions.height" :id="svg.workspaceId">
+      <g v-for="n in graph.nodes()">
+        <rect :x="nodeX(n)"
+              :y="nodeY(n)"
+              rx="5"
+              ry="5"
+              :width="node(n).width"
+              :height="node(n).height"
+              class="node" />
+        <text :x="nodeX(n)+node(n).width/2"
+              :y="nodeY(n)+node(n).height/2"
+              text-anchor="middle"
+              dominant-baseline="middle">
+          {{ n }}
+        </text>
+      </g>
+    </svg>
+    {{ graph }}
   </div>
 </template>
 
 <script>
 import { find } from 'lodash';
+import dagre from 'dagre';
 import transforms from '../orchestrations/transforms';
 import Orchestrator from 'data-transform-orchestrator';
 import { config } from '../orchestrations/ema-for-field';
 
-const d3 = require('d3');
-
 export default {
   name: 'orchestration-workspace',
+  props: {
+    nodeWidth: { type: Number, default: 100 },
+    nodeHeight: { type: Number, default: 50 },
+    graphPadding: { type: Number, default: 20 }
+  },
   data () {
     return {
       svg: {
@@ -37,65 +58,55 @@ export default {
     },
     cancel (e) {
       e.preventDefault();
+    },
+    node (n) {
+      return this.graph.node(n);
+    },
+    nodeX (n) {
+      const { x } = this.node(n);
+      return x - (this.node(n).width / 2) + this.graphPadding;
+    },
+    nodeY (n) {
+      const { y } = this.node(n);
+      return y - (this.node(n).height / 2) + this.graphPadding;
     }
   },
   computed: {
     orchestration () {
       return new Orchestrator(this.orchestrationConfig);
-    }
-  },
-  mounted () {
-    const svg = d3.select('#' + this.svg.workspaceId);
-    const { nodes, links } = this.orchestration.meta();
-    const { width, height } = this.svg;
+    },
+    graph () {
+      const { nodes, links } = this.orchestration.meta();
+      const { nodeWidth, nodeHeight } = this;
+      const g = new dagre.graphlib.Graph();
+      g.setGraph({});
+      g.setDefaultEdgeLabel(() => ({}));
 
-    // flatten links for d3 force()
-    const d3Links = links.map(link => ({
-      source: link.source.nodeId,
-      sourcePath: link.source.path,
-      target: link.target.nodeId,
-      targetPath: link.target.path
-    }));
-    const d3Nodes = [...nodes];
-    d3Nodes.push({id: 'userInput'});
+      nodes.forEach(node => {
+        g.setNode(node.id, {
+          label: node.id,
+          width: nodeWidth,
+          height: nodeHeight
+        });
+      });
+      // add userInput node
+      g.setNode('userInput', {
+        label: 'userInput',
+        width: nodeWidth,
+        height: nodeHeight
+      });
+      links.forEach(link => {
+        g.setEdge(link.source.nodeId, link.target.nodeId);
+      });
 
-    const simulation = d3.forceSimulation()
-          .force('link', d3.forceLink().id(d => d.id))
-          .force('charge', d3.forceManyBody()(-20))
-          .force('center', d3.forceCenter(width / 2, height / 2));
-
-    const n = nodes.length;
-
-    simulation.nodes(d3Nodes).on('tick', ticked);
-    simulation.force('link').links(d3Links);
-
-    d3Nodes.forEach((d, i) => {
-      d.x = d.y = width / n * i;
-    });
-
-    const link = svg.selectAll('.link')
-          .data(d3Links)
-      .enter().append('line')
-        .attr('class', 'link')
-        .style('stroke-width', d => Math.sqrt(d.value));
-
-    const node = svg.selectAll('.node')
-          .data(d3Nodes)
-      .enter().append('circle')
-        .attr('class', 'node')
-        .attr('r', 4.5)
-        .attr('title', d => d.id)
-        .style('fill', '#ff0000');
-
-    function ticked () {
-      link
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
-      node
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y);
+      dagre.layout(g);
+      return g;
+    },
+    graphDimensions () {
+      return {
+        width: this.graph.graph().width + (2 * this.graphPadding),
+        height: this.graph.graph().height + (2 * this.graphPadding)
+      };
     }
   }
 }
@@ -109,6 +120,12 @@ export default {
   padding: 1em;
 }
 
+.node {
+  stroke: #d3d3d3;
+  shape-rendering: crispEdges;
+  stroke-width: 2;
+  fill: none;
+}
 .link {
   stroke: #aaa;
 }
