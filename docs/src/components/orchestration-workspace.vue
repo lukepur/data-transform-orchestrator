@@ -19,6 +19,10 @@
           {{ n }}
         </text>
       </g>
+      <!-- Edges -->
+      <g v-for="e in graph.edges()" class="edge">
+        <path :d="pathForEdge(e)"/>
+      </g>
     </svg>
     {{ graph }}
   </div>
@@ -62,6 +66,9 @@ export default {
     node (n) {
       return this.graph.node(n);
     },
+    edge (e) {
+      return this.graph.edge(e);
+    },
     nodeX (n) {
       const { x } = this.node(n);
       return x - (this.node(n).width / 2) + this.graphPadding;
@@ -69,6 +76,17 @@ export default {
     nodeY (n) {
       const { y } = this.node(n);
       return y - (this.node(n).height / 2) + this.graphPadding;
+    },
+    pathForEdge (e) {
+      const edge = this.edge(e);
+      const firstPoint = edge.points[0];
+      const padding = this.graphPadding;
+      let path = `M${firstPoint.x + padding} ${firstPoint.y + padding}`;
+      for (let i = 1; i < edge.points.length; i++) {
+        const point = edge.points[i];
+        path += ` L${point.x + padding} ${point.y + padding}`;
+      }
+      return path;
     }
   },
   computed: {
@@ -126,7 +144,8 @@ export default {
   stroke-width: 2;
   fill: none;
 }
-.link {
-  stroke: #aaa;
+.edge {
+  stroke: #999;
+  fill: none;
 }
 </style>
