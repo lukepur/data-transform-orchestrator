@@ -5,23 +5,15 @@
     @dragover="cancel">
     <svg :width="graphDimensions.width" :height="graphDimensions.height" :id="svg.workspaceId">
       <g v-for="n in graph.nodes()">
-        <rect :x="nodeX(n)"
-              :y="nodeY(n)"
-              rx="5"
-              ry="5"
-              :width="node(n).width"
-              :height="node(n).height"
-              class="node" />
-        <text :x="nodeX(n)+node(n).width/2"
-              :y="nodeY(n)+node(n).height/2"
-              text-anchor="middle"
-              dominant-baseline="middle">
-          {{ n }}
-        </text>
+        <GraphNode :x="nodeX(n)"
+                   :y="nodeY(n)"
+                   :width="node(n).width"
+                   :height="node(n).height"
+                   :label="n" />
       </g>
       <!-- Edges -->
       <g v-for="e in graph.edges()" class="edge">
-        <path :d="pathForEdge(e)"/>
+        <GraphEdge :edge="padEdge(graph.edge(e))" />
       </g>
     </svg>
     {{ graph }}
@@ -34,6 +26,8 @@ import dagre from 'dagre';
 import transforms from '../orchestrations/transforms';
 import Orchestrator from 'data-transform-orchestrator';
 import { config } from '../orchestrations/ema-for-field';
+import GraphNode from './graph-node.vue';
+import GraphEdge from './graph-edge.vue';
 
 export default {
   name: 'orchestration-workspace',
@@ -66,9 +60,6 @@ export default {
     node (n) {
       return this.graph.node(n);
     },
-    edge (e) {
-      return this.graph.edge(e);
-    },
     nodeX (n) {
       const { x } = this.node(n);
       return x - (this.node(n).width / 2) + this.graphPadding;
@@ -77,16 +68,11 @@ export default {
       const { y } = this.node(n);
       return y - (this.node(n).height / 2) + this.graphPadding;
     },
-    pathForEdge (e) {
-      const edge = this.edge(e);
-      const firstPoint = edge.points[0];
-      const padding = this.graphPadding;
-      let path = `M${firstPoint.x + padding} ${firstPoint.y + padding}`;
-      for (let i = 1; i < edge.points.length; i++) {
-        const point = edge.points[i];
-        path += ` L${point.x + padding} ${point.y + padding}`;
-      }
-      return path;
+    padEdge (edge) {
+      return {
+        ...edge,
+        points: edge.points.map(p => ({ x: p.x + this.graphPadding, y: p.y + this.graphPadding }))
+      };
     }
   },
   computed: {
@@ -126,6 +112,10 @@ export default {
         height: this.graph.graph().height + (2 * this.graphPadding)
       };
     }
+  },
+  components: {
+    GraphNode,
+    GraphEdge
   }
 }
 </script>
@@ -136,16 +126,5 @@ export default {
   min-height: 600px;
   border: solid 1px #d3d3d3;
   padding: 1em;
-}
-
-.node {
-  stroke: #d3d3d3;
-  shape-rendering: crispEdges;
-  stroke-width: 2;
-  fill: none;
-}
-.edge {
-  stroke: #999;
-  fill: none;
 }
 </style>
