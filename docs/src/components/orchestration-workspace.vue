@@ -4,13 +4,15 @@
     @dragenter="cancel"
     @dragover="cancel">
     <svg :width="graphDimensions.width" :height="graphDimensions.height" :id="svg.workspaceId" class="graph">
-      <!-- Edges -->
-      <g v-for="e in graphEdges" class="edge">
-        <GraphEdge :edge="e" />
-      </g>
-      <!-- Nodes -->
-      <g v-for="n in graphNodes">
-        <GraphNode :node="n" />
+      <g :transform="'translate('+this.graphPadding+','+this.graphPadding+')'">
+        <!-- Edges -->
+        <g v-for="e in graphEdges" class="edge">
+          <GraphEdge :edge="e" />
+        </g>
+        <!-- Nodes -->
+        <g v-for="n in graphNodes">
+          <GraphNode :node="n" />
+        </g>
       </g>
     </svg>
   </div>
@@ -61,11 +63,13 @@ export default {
     },
     nodeX (n) {
       const { x } = this.node(n);
-      return x - (this.node(n).width / 2) + this.graphPadding;
+      // return x - (this.node(n).width / 2) + this.graphPadding;
+      return x - (this.node(n).width / 2);
     },
     nodeY (n) {
       const { y } = this.node(n);
-      return y - (this.node(n).height / 2) + this.graphPadding;
+      // return y - (this.node(n).height / 2) + this.graphPadding;
+      return y - (this.node(n).height / 2);
     },
     padEdge (edge) {
       return {
@@ -77,7 +81,7 @@ export default {
       const { links: metaLinks } = this.orchestration.meta();
       // const result = links.filter(link => link.target.nodeId === n || link.source.nodeId === n);
       const result = this.graph.nodeEdges(n).map(e => ({
-        ...this.padEdge(this.edge(e)),
+        ...this.edge(e),
         metaLink: find(metaLinks, link => link.target.nodeId === e.w && link.source.nodeId === e.v)
       }));
       return result;
@@ -116,7 +120,12 @@ export default {
         g.setEdge(link.source.nodeId, link.target.nodeId, { label: index });
       });
 
-      dagre.layout(g);
+      dagre.layout(g, {
+        // marginx: this.graphPadding,
+        // marginy: this.graphPadding
+        marginx: 100,
+        marginy: 100
+      });
       return g;
     },
     graphNodes () {
@@ -132,7 +141,7 @@ export default {
     },
     graphEdges () {
       return this.graph.edges().map(e => ({
-        ...this.padEdge(this.edge(e)),
+        ...this.edge(e),
         sourceNode: find(this.graphNodes, { label: e.v }),
         targetNode: find(this.graphNodes, { label: e.w })
       }));
