@@ -1,37 +1,47 @@
 <template>
 <g>
-  <rect :x="x" :y="y"
+  <rect :x="node.x" :y="node.y"
         rx="5" ry="5"
-        :width="width"
-        :height="height"
+        :width="node.width"
+        :height="node.height"
         class="node" />
-  <text :x="x + width / 2"
-        :y="y + height / 2"
+  <text :x="node.x + node.width / 2"
+        :y="node.y + node.height / 2"
         text-anchor="middle"
         dominant-baseline="middle">
-    {{ label }}
+    {{ node.label }}
   </text>
+  <GraphNodeSocket v-for="(link, index) in node.links" :key="index" :parentNode="node" :socket="socketForLink(link.metaLink)"/>
 </g>
 </template>
 
 <script>
+import GraphNodeSocket from './graph-node-socket.vue';
+
 export default {
   name: 'graph-node',
   props: {
-    x: Number,
-    y: Number,
-    width: Number,
-    height: Number,
-    label: String
+    node: Object
+  },
+  methods: {
+    socketForLink (link) {
+      const type = (link.source.nodeId === this.node.label ? 'source' : 'target');
+      return {
+        target: link[type].path,
+        type
+      };
+    }
+  },
+  components: {
+    GraphNodeSocket
   }
 }
 </script>
 
 <style>
 .node {
-  stroke: #d3d3d3;
-  shape-rendering: crispEdges;
-  stroke-width: 2;
+  stroke: #7a93a9;
+  stroke-width: 4;
   fill: none;
 }
 </style>

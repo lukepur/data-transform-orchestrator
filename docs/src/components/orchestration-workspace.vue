@@ -3,20 +3,16 @@
     @drop="onDrop"
     @dragenter="cancel"
     @dragover="cancel">
-    <svg :width="graphDimensions.width" :height="graphDimensions.height" :id="svg.workspaceId">
-      <g v-for="n in graph.nodes()">
-        <GraphNode :x="nodeX(n)"
-                   :y="nodeY(n)"
-                   :width="node(n).width"
-                   :height="node(n).height"
-                   :label="n" />
-      </g>
+    <svg :width="graphDimensions.width" :height="graphDimensions.height" :id="svg.workspaceId" class="graph">
       <!-- Edges -->
-      <g v-for="e in graph.edges()" class="edge">
-        <GraphEdge :edge="padEdge(graph.edge(e))" />
+      <g v-for="e in graphEdges" class="edge">
+        <GraphEdge :edge="e" />
+      </g>
+      <!-- Nodes -->
+      <g v-for="n in graphNodes">
+        <GraphNode :node="n" />
       </g>
     </svg>
-    {{ graph }}
   </div>
 </template>
 
@@ -32,7 +28,7 @@ import GraphEdge from './graph-edge.vue';
 export default {
   name: 'orchestration-workspace',
   props: {
-    nodeWidth: { type: Number, default: 100 },
+    nodeWidth: { type: Number, default: 120 },
     nodeHeight: { type: Number, default: 50 },
     graphPadding: { type: Number, default: 20 }
   },
@@ -60,6 +56,9 @@ export default {
     node (n) {
       return this.graph.node(n);
     },
+    edge (e) {
+      return this.graph.edge(e);
+    },
     nodeX (n) {
       const { x } = this.node(n);
       return x - (this.node(n).width / 2) + this.graphPadding;
@@ -73,6 +72,20 @@ export default {
         ...edge,
         points: edge.points.map(p => ({ x: p.x + this.graphPadding, y: p.y + this.graphPadding }))
       };
+    },
+    getLinksForNode (n) {
+      const { links: metaLinks } = this.orchestration.meta();
+      // const result = links.filter(link => link.target.nodeId === n || link.source.nodeId === n);
+      const result = this.graph.nodeEdges(n).map(e => ({
+        ...this.padEdge(this.edge(e)),
+        metaLink: find(metaLinks, link => link.target.nodeId === e.w && link.source.nodeId === e.v)
+      }));
+      return result;
+    },
+    getMetaForNode (n) {
+      const meta = this.orchestration.meta();
+      const targetNode = find(meta.nodes, { id: n });
+      return targetNode ? targetNode.meta() : null;
     }
   },
   computed: {
@@ -99,12 +112,30 @@ export default {
         width: nodeWidth,
         height: nodeHeight
       });
-      links.forEach(link => {
-        g.setEdge(link.source.nodeId, link.target.nodeId);
+      links.forEach((link, index) => {
+        g.setEdge(link.source.nodeId, link.target.nodeId, { label: index });
       });
 
       dagre.layout(g);
       return g;
+    },
+    graphNodes () {
+      return this.graph.nodes().map(n => ({
+        x: this.nodeX(n),
+        y: this.nodeY(n),
+        width: this.node(n).width,
+        height: this.node(n).height,
+        label: n,
+        links: this.getLinksForNode(n),
+        meta: this.getMetaForNode(n)
+      }));
+    },
+    graphEdges () {
+      return this.graph.edges().map(e => ({
+        ...this.padEdge(this.edge(e)),
+        sourceNode: find(this.graphNodes, { label: e.v }),
+        targetNode: find(this.graphNodes, { label: e.w })
+      }));
     },
     graphDimensions () {
       return {
@@ -126,5 +157,10 @@ export default {
   min-height: 600px;
   border: solid 1px #d3d3d3;
   padding: 1em;
+}
+
+.graph {
+  display: block;
+  margin: 0 auto;
 }
 </style>
