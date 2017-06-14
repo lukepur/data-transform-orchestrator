@@ -3,29 +3,16 @@
     @drop="onDrop"
     @dragenter="cancel"
     @dragover="cancel">
-    <svg :width="graphDimensions.width" :height="graphDimensions.height" :id="svg.workspaceId" class="graph">
-      <g :transform="'translate('+this.graphPadding+','+this.graphPadding+')'">
-        <!-- Edges -->
-        <g v-for="e in graphEdges" class="edge">
-          <GraphEdge :edge="e" />
-        </g>
-        <!-- Nodes -->
-        <g v-for="n in graphNodes">
-          <GraphNode :node="n" />
-        </g>
-      </g>
-    </svg>
+    <PortGraph :graphConfig="graphConfig"/>
   </div>
 </template>
 
 <script>
 import { find } from 'lodash';
-import dagre from 'dagre';
+import PortGraph from 'vue-port-graph';
 import transforms from '../orchestrations/transforms';
 import Orchestrator from 'data-transform-orchestrator';
 import { config } from '../orchestrations/ema-for-field';
-import GraphNode from './graph-node.vue';
-import GraphEdge from './graph-edge.vue';
 
 export default {
   name: 'orchestration-workspace',
@@ -36,11 +23,6 @@ export default {
   },
   data () {
     return {
-      svg: {
-        width: 800,
-        height: 600,
-        workspaceId: 'workspace'
-      },
       orchestrationConfig: config
     };
   },
@@ -55,107 +37,45 @@ export default {
     cancel (e) {
       e.preventDefault();
     },
-    node (n) {
-      return this.graph.node(n);
-    },
-    edge (e) {
-      return this.graph.edge(e);
-    },
-    nodeX (n) {
-      const { x } = this.node(n);
-      // return x - (this.node(n).width / 2) + this.graphPadding;
-      return x - (this.node(n).width / 2);
-    },
-    nodeY (n) {
-      const { y } = this.node(n);
-      // return y - (this.node(n).height / 2) + this.graphPadding;
-      return y - (this.node(n).height / 2);
-    },
-    padEdge (edge) {
-      return {
-        ...edge,
-        points: edge.points.map(p => ({ x: p.x + this.graphPadding, y: p.y + this.graphPadding }))
-      };
-    },
-    getLinksForNode (n) {
-      const { links: metaLinks } = this.orchestration.meta();
-      // const result = links.filter(link => link.target.nodeId === n || link.source.nodeId === n);
-      const result = this.graph.nodeEdges(n).map(e => ({
-        ...this.edge(e),
-        metaLink: find(metaLinks, link => link.target.nodeId === e.w && link.source.nodeId === e.v)
-      }));
-      return result;
-    },
-    getMetaForNode (n) {
-      const meta = this.orchestration.meta();
-      const targetNode = find(meta.nodes, { id: n });
-      return targetNode ? targetNode.meta() : null;
+    createUserInputNode (links) {
+      return links.reduce((memo, link) => {
+        if (link.source.nodeId === 'userInput') {
+          memo.ports.push({
+            id: link.source.path,
+            type: 'source'
+          });
+        }
+        return memo;
+      }, { id: 'userInput', ports: [] });
     }
   },
   computed: {
     orchestration () {
       return new Orchestrator(this.orchestrationConfig);
     },
-    graph () {
+    graphConfig () {
       const { nodes, links } = this.orchestration.meta();
-      const { nodeWidth, nodeHeight } = this;
-      const g = new dagre.graphlib.Graph();
-      g.setGraph({});
-      g.setDefaultEdgeLabel(() => ({}));
+      if (!nodes || !links) return {};
+      const nodeConfig = nodes.map(node => ({
+        id: node.id,
+        ports: node.meta().inputConstraints.map(c => ({ id: c.id, type: 'input' }))
+          .concat(node.meta().outputConstraints.map(c => ({ id: c.id, type: 'output' })))
+      })).concat([this.createUserInputNode(links)]);
 
-      nodes.forEach(node => {
-        g.setNode(node.id, {
-          label: node.id,
-          width: nodeWidth,
-          height: nodeHeight
-        });
-      });
-      // add userInput node
-      g.setNode('userInput', {
-        label: 'userInput',
-        width: nodeWidth,
-        height: nodeHeight
-      });
-      links.forEach((link, index) => {
-        g.setEdge(link.source.nodeId, link.target.nodeId, { label: index });
-      });
-
-      dagre.layout(g, {
-        // marginx: this.graphPadding,
-        // marginy: this.graphPadding
-        marginx: 100,
-        marginy: 100
-      });
-      return g;
-    },
-    graphNodes () {
-      return this.graph.nodes().map(n => ({
-        x: this.nodeX(n),
-        y: this.nodeY(n),
-        width: this.node(n).width,
-        height: this.node(n).height,
-        label: n,
-        links: this.getLinksForNode(n),
-        meta: this.getMetaForNode(n)
-      }));
-    },
-    graphEdges () {
-      return this.graph.edges().map(e => ({
-        ...this.edge(e),
-        sourceNode: find(this.graphNodes, { label: e.v }),
-        targetNode: find(this.graphNodes, { label: e.w })
-      }));
-    },
-    graphDimensions () {
       return {
-        width: this.graph.graph().width + (2 * this.graphPadding),
-        height: this.graph.graph().height + (2 * this.graphPadding)
+        nodes: nodeConfig,
+        edges: links.map(l => ({
+          source: { nodeId: l.source.nodeId, portId: l.source.path },
+          target: { nodeId: l.target.nodeId, portId: l.target.path }
+        })),
+        options: {
+          dagre: {}
+        }
       };
     }
   },
   components: {
-    GraphNode,
-    GraphEdge
+    PortGraph
   }
 }
 </script>
