@@ -3,7 +3,7 @@
     @drop="onDrop"
     @dragenter="cancel"
     @dragover="cancel">
-    <PortGraph :graphConfig="graphConfig"/>
+    <PortGraph :graphConfig="graphConfig" :onPortConnection="handleConnection" :filterDropCandidates="filterDropCandidates" />
   </div>
 </template>
 
@@ -11,6 +11,7 @@
 import { find } from 'lodash';
 import PortGraph from 'vue-port-graph';
 import transforms from '../orchestrations/transforms';
+import { applyNewPortConnection, isGraphAcyclic } from '../helpers/graph-helpers';
 import Orchestrator from 'data-transform-orchestrator';
 import { config } from '../orchestrations/ema-for-field';
 
@@ -23,7 +24,7 @@ export default {
   },
   data () {
     return {
-      orchestrationConfig: config
+      orchestrationConfig: { ...config }
     };
   },
   methods: {
@@ -47,6 +48,20 @@ export default {
         }
         return memo;
       }, { id: 'userInput', ports: [] });
+    },
+    handleConnection (con) {
+      const result = applyNewPortConnection(this.graphConfig, con);
+      console.log('result:', result);
+      if (isGraphAcyclic(result)) {
+        this.orchestrationConfig = {
+          ...this.orchestrationConfig,
+          links: convertGraphEdgesToLinks(result.edges)
+        };
+      }
+    },
+    filterDropCandidates (portBeingDragged, candidatePort) {
+      debugger;
+      console.log(this.orchestration);
     }
   },
   computed: {
@@ -77,6 +92,19 @@ export default {
   components: {
     PortGraph
   }
+}
+
+function convertGraphEdgesToLinks (edges = []) {
+  return edges.map(e => ({
+    source: {
+      nodeId: e.source.nodeId,
+      path: e.source.portId
+    },
+    target: {
+      nodeId: e.target.nodeId,
+      path: e.target.portId
+    }
+  }));
 }
 </script>
 
