@@ -3,7 +3,7 @@
     @drop="onDrop"
     @dragenter="cancel"
     @dragover="cancel">
-    <PortGraph :graphConfig="graphConfig" :onPortConnection="handleConnection" :filterDropCandidates="filterDropCandidates" />
+    <PortGraph :graphConfig="graphConfig" :onConnection="handleConnection" :filterDropCandidates="filterDropCandidates" />
   </div>
 </template>
 
@@ -11,7 +11,7 @@
 import { find } from 'lodash';
 import PortGraph from 'vue-port-graph';
 import transforms from '../orchestrations/transforms';
-import { applyNewPortConnection, isGraphAcyclic } from '../helpers/graph-helpers';
+import { applyNewConnection, isGraphAcyclic } from '../helpers/graph-helpers';
 import Orchestrator from 'data-transform-orchestrator';
 import { config } from '../orchestrations/ema-for-field';
 
@@ -47,10 +47,10 @@ export default {
           });
         }
         return memo;
-      }, { id: 'userInput', ports: [] });
+      }, { id: 'userInput', ports: [], canCreateOutputPorts: true });
     },
     handleConnection (con) {
-      const result = applyNewPortConnection(this.graphConfig, con);
+      const result = applyNewConnection(this.graphConfig, con);
       console.log('result:', result);
       if (isGraphAcyclic(result)) {
         this.orchestrationConfig = {
@@ -60,8 +60,8 @@ export default {
       }
     },
     filterDropCandidates (portBeingDragged, candidatePort) {
-      debugger;
-      console.log(this.orchestration);
+      // console.log(this.orchestration);
+      return true;
     }
   },
   computed: {
