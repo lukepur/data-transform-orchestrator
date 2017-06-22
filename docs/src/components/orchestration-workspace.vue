@@ -5,81 +5,39 @@
     @dragover="cancel">
     <PortGraph
       :graphConfig="graphConfig"
-      :onConnection="handleConnection"
-      :filterDropCandidates="filterDropCandidates"
-      :onEntityClick="handleEntityClick" />
+      :onConnection="(con) => onConnection(graphConfig, con)"
+      :onEntityClick="(entity) => onClickEntity(graphConfig, entity)" />
   </div>
 </template>
 
 <script>
-import { find, chain } from 'lodash';
 import PortGraph from 'vue-port-graph';
-import transforms from '../orchestrations/transforms';
-import { applyNewConnection, isGraphAcyclic } from '../helpers/graph-helpers';
 import Orchestrator, { consts } from 'data-transform-orchestrator';
-import { config } from '../orchestrations/ema-for-field';
 
 const { SYSTEM_IN } = consts.default;
 
 export default {
   name: 'orchestration-workspace',
   props: {
+    orchestrationConfig: { type: Object, default: () => ({}) },
+    onDrop: { type: Function, default: () => {} },
+    onClickEntity: { type: Function, default: () => {} },
+    onConnection: { type: Function, default: () => {} },
+
     nodeWidth: { type: Number, default: 120 },
     nodeHeight: { type: Number, default: 50 },
-    graphPadding: { type: Number, default: 20 },
-    onClickEntity: { type: Function, default: () => {} }
+    graphPadding: { type: Number, default: 20 }
   },
 
   data () {
     return {
-      orchestrationConfig: { ...config },
-      systemInputNode: createSystemInputNodeFromOrchestrationConfig({ ...config })
+      systemInputNode: createSystemInputNodeFromOrchestrationConfig({ ...this.orchestrationConfig })
     };
   },
 
   methods: {
-    onDrop (e) {
-      const name = e.dataTransfer.getData('name');
-      const transform = find(transforms, t => t.meta().name === name);
-      if (transform) {
-        this.orchestrationConfig.nodes.push({ ...transform, id: name });
-      }
-    },
-
     cancel (e) {
       e.preventDefault();
-    },
-
-    handleConnection (con) {
-      const result = applyNewConnection(this.graphConfig, con);
-      if (isGraphAcyclic(result)) {
-        this.orchestrationConfig = {
-          ...this.orchestrationConfig,
-          links: convertGraphEdgesToLinks(result.edges)
-        };
-      }
-    },
-
-    filterDropCandidates (portBeingDragged, candidatePort) {
-      return true;
-    },
-
-    handleEntityClick (entity) {
-      if (entity.type === 'port') {
-        const { nodeId, portId } = entity.data;
-        return this.onClickEntity({
-          type: entity.type,
-          data: {
-            ...entity.data,
-            ...getConfigPort(this.graphConfig, nodeId, portId)
-          }
-        });
-      }
-      return this.onClickEntity(entity);
-    },
-
-    handleEntitySave (entity) {
-      console.log('received entity to save (workspace):', entity);
     }
   },
 
@@ -110,6 +68,12 @@ export default {
     }
   },
 
+  watch: {
+    orchestrationConfig (newValue) {
+      this.systemInputNode = createSystemInputNodeFromOrchestrationConfig({ ...newValue });
+    }
+  },
+
   components: {
     PortGraph
   }
@@ -132,26 +96,6 @@ function createSystemInputNodeFromOrchestrationConfig (config = {}) {
   return node;
 }
 
-function convertGraphEdgesToLinks (edges = []) {
-  return edges.map(e => ({
-    source: {
-      nodeId: e.source.nodeId,
-      path: e.source.portId
-    },
-    target: {
-      nodeId: e.target.nodeId,
-      path: e.target.portId
-    }
-  }));
-}
-
-function getConfigPort (config, nodeId, portId) {
-  return chain(config.nodes)
-    .find({ id: nodeId })
-    .get('ports')
-    .find({ id: portId })
-    .value()
-}
 </script>
 
 <style>
