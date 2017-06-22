@@ -16,7 +16,7 @@ const config = {
   links: [
     {
       source: {
-        nodeId: 'userInput',
+        nodeId: 'systemIn',
         path: 'csv'
       },
       target: {
@@ -36,7 +36,7 @@ const config = {
     },
     {
       source: {
-        nodeId: 'userInput',
+        nodeId: 'systemIn',
         path: 'priceField'
       },
       target: {
@@ -56,7 +56,7 @@ const config = {
     },
     {
       source: {
-        nodeId: 'userInput',
+        nodeId: 'systemIn',
         path: 'periods'
       },
       target: {

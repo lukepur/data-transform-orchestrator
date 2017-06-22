@@ -5,6 +5,8 @@
     </div>
     <div class="row">
       <div class="col-3">
+        <h5>Property Editor</h5>
+        <PropertyEditor :entity="selectedEntity"/>
         <h5>Transforms</h5>
         <TransformCategory
           v-for="(ts, name) in transformCategories"
@@ -14,22 +16,26 @@
       </div>
       <div class="col-9">
         <h5>Workspace</h5>
-        <OrchestrationWorkspace />
+        <OrchestrationWorkspace :onClickEntity="handleClickEntity" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { cloneDeep } from 'lodash';
+
 import transforms from '../../orchestrations/transforms';
 import TransformCategory from '../transform-category.vue';
 import OrchestrationWorkspace from '../orchestration-workspace.vue';
+import PropertyEditor from '../property-editor.vue';
 
 export default {
   name: 'orchestration-builder',
   data () {
     return {
-      transforms
+      transforms,
+      selectedEntity: null
     }
   },
   computed: {
@@ -44,9 +50,15 @@ export default {
       }, {});
     }
   },
+  methods: {
+    handleClickEntity (entity) {
+      this.selectedEntity = cloneDeep(entity);
+    }
+  },
   components: {
     TransformCategory,
-    OrchestrationWorkspace
+    OrchestrationWorkspace,
+    PropertyEditor
   }
 }
 </script>

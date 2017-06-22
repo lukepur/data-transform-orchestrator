@@ -1,25 +1,27 @@
 const toposort = require('toposort');
 const { find, assign, set } = require('lodash');
 
+const { SYSTEM_IN } = require('./consts');
+
 function Orchestrator (config) {
   const { nodes, links, meta } = config;
 
-  this.run = function (userInput) {
+  this.run = function (systemInput) {
     const graph = buildDependencyGraph(links);
     const inputCache = {};
     const resultCache = {};
 
     // ensure all userInputs are available
-    const userInputLinks = links.filter(link => link.source.nodeId === 'userInput');
-    const unenteredInputs = userInputLinks.filter(link => userInput[link.source.path] === undefined);
+    const systemInputLinks = links.filter(link => link.source.nodeId === SYSTEM_IN);
+    const unenteredInputs = systemInputLinks.filter(link => systemInput[link.source.path] === undefined);
 
     if (unenteredInputs.length > 0) {
       throw Error('Unentered inputs: ' + unenteredInputs.map(link => link.source.path).join(','));
     }
 
-    // put userInputs into target inputs
-    userInputLinks.forEach(link => {
-      set(inputCache, [link.target.nodeId, link.target.path], userInput[link.source.path]);
+    // put systemInput into target inputs
+    systemInputLinks.forEach(link => {
+      set(inputCache, [link.target.nodeId, link.target.path], systemInput[link.source.path]);
     });
 
     // good to run...
@@ -84,6 +86,7 @@ function Orchestrator (config) {
 };
 
 module.exports = Orchestrator;
+module.exports.consts = require('./consts');
 
 function buildDependencyGraph(links) {
   const depGraph = [];

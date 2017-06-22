@@ -9,23 +9,26 @@ var _require = require('lodash'),
     assign = _require.assign,
     set = _require.set;
 
+var _require2 = require('./consts'),
+    SYSTEM_IN = _require2.SYSTEM_IN;
+
 function Orchestrator(config) {
   var nodes = config.nodes,
       links = config.links,
       meta = config.meta;
 
 
-  this.run = function (userInput) {
+  this.run = function (systemInput) {
     var graph = buildDependencyGraph(links);
     var inputCache = {};
     var resultCache = {};
 
     // ensure all userInputs are available
-    var userInputLinks = links.filter(function (link) {
-      return link.source.nodeId === 'userInput';
+    var systemInputLinks = links.filter(function (link) {
+      return link.source.nodeId === SYSTEM_IN;
     });
-    var unenteredInputs = userInputLinks.filter(function (link) {
-      return userInput[link.source.path] === undefined;
+    var unenteredInputs = systemInputLinks.filter(function (link) {
+      return systemInput[link.source.path] === undefined;
     });
 
     if (unenteredInputs.length > 0) {
@@ -34,9 +37,9 @@ function Orchestrator(config) {
       }).join(','));
     }
 
-    // put userInputs into target inputs
-    userInputLinks.forEach(function (link) {
-      set(inputCache, [link.target.nodeId, link.target.path], userInput[link.source.path]);
+    // put systemInput into target inputs
+    systemInputLinks.forEach(function (link) {
+      set(inputCache, [link.target.nodeId, link.target.path], systemInput[link.source.path]);
     });
 
     // good to run...
@@ -120,6 +123,7 @@ function Orchestrator(config) {
 };
 
 module.exports = Orchestrator;
+module.exports.consts = require('./consts');
 
 function buildDependencyGraph(links) {
   var depGraph = [];

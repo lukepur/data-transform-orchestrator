@@ -3,30 +3,39 @@
     @drop="onDrop"
     @dragenter="cancel"
     @dragover="cancel">
-    <PortGraph :graphConfig="graphConfig" :onConnection="handleConnection" :filterDropCandidates="filterDropCandidates" />
+    <PortGraph
+      :graphConfig="graphConfig"
+      :onConnection="handleConnection"
+      :filterDropCandidates="filterDropCandidates"
+      :onEntityClick="handleEntityClick" />
   </div>
 </template>
 
 <script>
-import { find } from 'lodash';
+import { find, chain } from 'lodash';
 import PortGraph from 'vue-port-graph';
 import transforms from '../orchestrations/transforms';
 import { applyNewConnection, isGraphAcyclic } from '../helpers/graph-helpers';
-import Orchestrator from 'data-transform-orchestrator';
+import Orchestrator, { consts } from 'data-transform-orchestrator';
 import { config } from '../orchestrations/ema-for-field';
+
+const { SYSTEM_IN } = consts.default;
 
 export default {
   name: 'orchestration-workspace',
   props: {
     nodeWidth: { type: Number, default: 120 },
     nodeHeight: { type: Number, default: 50 },
-    graphPadding: { type: Number, default: 20 }
+    graphPadding: { type: Number, default: 20 },
+    onClickEntity: { type: Function, default: () => {} }
   },
+
   data () {
     return {
       orchestrationConfig: { ...config }
     };
   },
+
   methods: {
     onDrop (e) {
       const name = e.dataTransfer.getData('name');
@@ -35,23 +44,26 @@ export default {
         this.orchestrationConfig.nodes.push({ ...transform, id: name });
       }
     },
+
     cancel (e) {
       e.preventDefault();
     },
+
     createUserInputNode (links) {
       return links.reduce((memo, link) => {
-        if (link.source.nodeId === 'userInput') {
+        if (link.source.nodeId === SYSTEM_IN) {
           memo.ports.push({
             id: link.source.path,
-            type: 'source'
+            type: 'output',
+            isEditable: true
           });
         }
         return memo;
-      }, { id: 'userInput', ports: [], canCreateOutputPorts: true });
+      }, { id: SYSTEM_IN, ports: [], canCreateOutputPorts: true });
     },
+
     handleConnection (con) {
       const result = applyNewConnection(this.graphConfig, con);
-      console.log('result:', result);
       if (isGraphAcyclic(result)) {
         this.orchestrationConfig = {
           ...this.orchestrationConfig,
@@ -59,15 +71,30 @@ export default {
         };
       }
     },
+
     filterDropCandidates (portBeingDragged, candidatePort) {
-      // console.log(this.orchestration);
       return true;
+    },
+
+    handleEntityClick (entity) {
+      if (entity.type === 'port') {
+        const { nodeId, portId } = entity.data;
+        return this.onClickEntity({
+          type: entity.type,
+          data: {
+            ...entity.data,
+            ...getConfigPort(this.graphConfig, nodeId, portId)
+          }
+        });
+      }
+      return this.onClickEntity(entity);
     }
   },
   computed: {
     orchestration () {
       return new Orchestrator(this.orchestrationConfig);
     },
+
     graphConfig () {
       const { nodes, links } = this.orchestration.meta();
       if (!nodes || !links) return {};
@@ -105,6 +132,14 @@ function convertGraphEdgesToLinks (edges = []) {
       path: e.target.portId
     }
   }));
+}
+
+function getConfigPort (config, nodeId, portId) {
+  return chain(config.nodes)
+    .find({ id: nodeId })
+    .get('ports')
+    .find({ id: portId })
+    .value()
 }
 </script>
 

@@ -1,5 +1,6 @@
 const { assign } = require('lodash');
 
+const { SYSTEM_IN } = require('../consts');
 const arrayPick = require('./transforms/transform-array-pick');
 const ema = require('./transforms/transform-ema');
 
@@ -11,7 +12,7 @@ module.exports = {
   links: [
     {
       source: {
-        nodeId: 'userInput',
+        nodeId: SYSTEM_IN,
         path: 'priceField'
       },
       target: {
@@ -21,7 +22,7 @@ module.exports = {
     },
     {
       source: {
-        nodeId: 'userInput',
+        nodeId: SYSTEM_IN,
         path: 'priceArray'
       },
       target: {
@@ -41,7 +42,7 @@ module.exports = {
     },
     {
       source: {
-        nodeId: 'userInput',
+        nodeId: '',
         path: 'periods'
       },
       target: {
