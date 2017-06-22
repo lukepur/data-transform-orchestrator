@@ -1,7 +1,7 @@
 <template>
 <div>
   <h6>Prop editor</h6>
-  <component :is="editorType" :entity="entity" />
+  <component :is="editorType" :entity="entity" :onSaveEntity="onSaveEntity" />
 </div>
 </template>
 
@@ -14,6 +14,10 @@ export default {
   props: {
     entity: {
       type: Object,
+      default: () => {}
+    },
+    onSaveEntity: {
+      type: Function,
       default: () => {}
     }
   },

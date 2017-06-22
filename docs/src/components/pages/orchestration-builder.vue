@@ -6,7 +6,7 @@
     <div class="row">
       <div class="col-3">
         <h5>Property Editor</h5>
-        <PropertyEditor :entity="selectedEntity"/>
+        <PropertyEditor :entity="selectedEntity" :onSaveEntity="handleSaveEntity"/>
         <h5>Transforms</h5>
         <TransformCategory
           v-for="(ts, name) in transformCategories"
@@ -53,6 +53,10 @@ export default {
   methods: {
     handleClickEntity (entity) {
       this.selectedEntity = cloneDeep(entity);
+    },
+
+    handleSaveEntity (entity) {
+      console.log('received saveEntity', entity);
     }
   },
   components: {

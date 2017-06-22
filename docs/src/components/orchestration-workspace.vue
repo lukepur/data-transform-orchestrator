@@ -32,7 +32,8 @@ export default {
 
   data () {
     return {
-      orchestrationConfig: { ...config }
+      orchestrationConfig: { ...config },
+      systemInputNode: createSystemInputNodeFromOrchestrationConfig({ ...config })
     };
   },
 
@@ -47,19 +48,6 @@ export default {
 
     cancel (e) {
       e.preventDefault();
-    },
-
-    createUserInputNode (links) {
-      return links.reduce((memo, link) => {
-        if (link.source.nodeId === SYSTEM_IN) {
-          memo.ports.push({
-            id: link.source.path,
-            type: 'output',
-            isEditable: true
-          });
-        }
-        return memo;
-      }, { id: SYSTEM_IN, ports: [], canCreateOutputPorts: true });
     },
 
     handleConnection (con) {
@@ -88,8 +76,13 @@ export default {
         });
       }
       return this.onClickEntity(entity);
+    },
+
+    handleEntitySave (entity) {
+      console.log('received entity to save (workspace):', entity);
     }
   },
+
   computed: {
     orchestration () {
       return new Orchestrator(this.orchestrationConfig);
@@ -102,7 +95,7 @@ export default {
         id: node.id,
         ports: node.meta().inputConstraints.map(c => ({ id: c.id, type: 'input' }))
           .concat(node.meta().outputConstraints.map(c => ({ id: c.id, type: 'output' })))
-      })).concat([this.createUserInputNode(links)]);
+      })).concat([this.systemInputNode]);
 
       return {
         nodes: nodeConfig,
@@ -116,9 +109,27 @@ export default {
       };
     }
   },
+
   components: {
     PortGraph
   }
+}
+
+function createSystemInputNodeFromOrchestrationConfig (config = {}) {
+  const node = { id: SYSTEM_IN, ports: [], canCreateOutputPorts: true };
+  const { links } = config;
+  if (links) {
+    links.forEach(l => {
+      if (l.source.nodeId === SYSTEM_IN) {
+        node.ports.push({
+          id: l.source.path,
+          type: 'output',
+          isEditable: true
+        });
+      }
+    })
+  }
+  return node;
 }
 
 function convertGraphEdgesToLinks (edges = []) {
